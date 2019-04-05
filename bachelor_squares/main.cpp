@@ -4,17 +4,33 @@
 
 int count = 0;
 
-bool canBeTransversal(char **square, char** result, int n, int k, int val){
-    if(val == k%n){
-        return false;
+void printLatinSquare(char **square, int n){
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < n; j++){
+            printf("%d ", square[i][j]);
+        }
+        printf("\n");
     }
-    else{
-        for(int i = 0; i < k; i++){
-            char tmp = result[i/n][i%n];
-            if(tmp == val){
-                if(square[i/n][i%n] == square[k/n][k%n]){
-                    return false;
-                }
+    printf("\n\n");
+}
+
+bool canBeTransversal(char **square, char** result, int n, int k, int val){
+    for(int i = 0; i < k/n; i++){
+        if(result[i][k%n] == val){
+            return false;
+        }
+    }
+    //jeśli poprzedni element w wierszu należy do tego transwersala, to nie może
+    for(int i = 0; i < k%n; i++){
+        if(result[k/n][i] == val){
+            return false;
+        }
+    }
+    //jeśli na transwersalu leży już element o takiej samej wartości, to nie może
+    for(int i = 0; i < k; i++){
+        if(result[i/n][i%n] == val){
+            if(square[i/n][i%n] == square[k/n][k%n]){
+                return false;
             }
         }
     }
@@ -22,21 +38,22 @@ bool canBeTransversal(char **square, char** result, int n, int k, int val){
 }
 
 
-void checkTransversalsRec(char **square, char** result, int n, int k){
+void checkTransversalsRec(char **square, char** result, int n, int k, bool& found){
     if(k == n*n){
-        return;
+        found = true;
     }
     else{
         for(int i = 0; i < n; i++){
-            if(canBeTransversal(square,result, n, k, i)){
+            if(canBeTransversal(square,result, n, k, i) && !found){
+                //printLatinSquare(result, n);
                 result[k/n][k%n] = i;
-                return checkTransversalsRec(square,result, n, k + 1);
+                checkTransversalsRec(square,result, n, k + 1, found);
             }
         }
     }
 }
 
-char** checkTransversals(char** square, int n){
+bool checkTransversals(char** square, int n){
     char** result = new char*[n];
     for(int i = 0; i < n; i++){
         result[i] = new char[n];
@@ -49,8 +66,9 @@ char** checkTransversals(char** square, int n){
             result[i][j] = -1;
         }
     }
-    checkTransversalsRec(square, result, n, n);
-    return result;
+    bool found = false;
+    checkTransversalsRec(square, result, n, n, found);
+    return found;
 }
 
 
@@ -72,21 +90,13 @@ bool canExtendToLatinSquare(int n, char** square, int k, int val){
     
 }
 
-void printLatinSquare(char** square, int n){
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
-            printf("%d ", square[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n\n");
-}
 
 void generateReducedLatinSquaresRec(int k, char** square, int n){
     int size = n*n;
     if(k == size){
-        printLatinSquare(checkTransversals(square, n), n);
-        count++;
+        if(checkTransversals(square, n)){
+            printLatinSquare(square, n);
+        };
     }
     else{
         if(k%n){
@@ -118,10 +128,45 @@ void generateReducedLatinSquares(int n){
     delete [] square;
 }
 
-
+void generatePermutations(){
+    
+}
 
 
 int main()
 {
-    generateReducedLatinSquares(6);
+/*
+    char **table = new char*[5];
+    for(int i = 0; i <5; i++){
+        table[i] = new char[5];
+    }
+    table[0][0]=0;
+    table[0][1]=1;
+    table[0][2]=2;
+    table[0][3]=3;
+    table[0][4]=4;
+    table[1][0]=1;
+    table[1][1]=2;
+    table[1][2]=3;
+    table[1][3]=4;
+    table[1][4]=0;
+    table[2][0]=2;
+    table[2][1]=3;
+    table[2][2]=4;
+    table[2][3]=0;
+    table[2][4]=1;
+    table[3][0]=3;
+    table[3][1]=4;
+    table[3][2]=0;
+    table[3][3]=1;
+    table[3][4]=2;
+    table[4][0]=4;
+    table[4][1]=0;
+    table[4][2]=1;
+    table[4][3]=2;
+    table[4][4]=3;
+*/
+    //printLatinSquare(table, 5);
+    generateReducedLatinSquares(7);
+    //checkTransversals(table, 5);
 }

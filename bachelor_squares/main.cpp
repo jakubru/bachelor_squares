@@ -1,6 +1,7 @@
 // Example program
 #include <cstdlib>
 #include <cstdio>
+#include <unordered_map>
 
 int count = 0;
 
@@ -15,18 +16,19 @@ void printLatinSquare(char **square, int n){
 }
 
 bool canBeTransversal(char **square, char** result, int n, int k, int val){
+    //jeśli leży w kolumnie, w której już jes jakiś element k%n transwersala to nie bierzemy do transwersala
     for(int i = 0; i < k/n; i++){
         if(result[i][k%n] == val){
             return false;
         }
     }
-    //jeśli poprzedni element w wierszu należy do tego transwersala, to nie może
+    //jeśli poprzedni element w wierszu należy do tego transwersala, to nie bierzemy do transwersala
     for(int i = 0; i < k%n; i++){
         if(result[k/n][i] == val){
             return false;
         }
     }
-    //jeśli na transwersalu leży już element o takiej samej wartości, to nie może
+    //jeśli na transwersalu leży już element o takiej samej wartości, to nie bierzemy do transwersala
     for(int i = 0; i < k; i++){
         if(result[i/n][i%n] == val){
             if(square[i/n][i%n] == square[k/n][k%n]){
@@ -44,7 +46,7 @@ void checkTransversalsRec(char **square, char** result, int n, int k, bool& foun
     }
     else{
         for(int i = 0; i < n; i++){
-            if(canBeTransversal(square,result, n, k, i) && !found){
+            if(canBeTransversal(square,result, n, k, i) && !found){//jeśli nadal może być transwersalem, lub w poprzednim wywołaniu rekurencji jeszcze nie znaleźliśmy pełnego rozkładu to szuka nadal
                 //printLatinSquare(result, n);
                 result[k/n][k%n] = i;
                 checkTransversalsRec(square,result, n, k + 1, found);
@@ -135,38 +137,5 @@ void generatePermutations(){
 
 int main()
 {
-/*
-    char **table = new char*[5];
-    for(int i = 0; i <5; i++){
-        table[i] = new char[5];
-    }
-    table[0][0]=0;
-    table[0][1]=1;
-    table[0][2]=2;
-    table[0][3]=3;
-    table[0][4]=4;
-    table[1][0]=1;
-    table[1][1]=2;
-    table[1][2]=3;
-    table[1][3]=4;
-    table[1][4]=0;
-    table[2][0]=2;
-    table[2][1]=3;
-    table[2][2]=4;
-    table[2][3]=0;
-    table[2][4]=1;
-    table[3][0]=3;
-    table[3][1]=4;
-    table[3][2]=0;
-    table[3][3]=1;
-    table[3][4]=2;
-    table[4][0]=4;
-    table[4][1]=0;
-    table[4][2]=1;
-    table[4][3]=2;
-    table[4][4]=3;
-*/
-    //printLatinSquare(table, 5);
     generateReducedLatinSquares(7);
-    //checkTransversals(table, 5);
 }

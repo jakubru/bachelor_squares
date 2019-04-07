@@ -3,10 +3,10 @@
 #include <cstdio>
 #include <vector>
 #include <list>
-
-int count = 0;
+#include <algorithm>
 
 typedef std::vector<std::vector<char>> LatinSquare;
+typedef void (*swap)(LatinSquare&, int, int);
 
 
 LatinSquare toLatinSquare(char** square, int n){
@@ -20,7 +20,7 @@ LatinSquare toLatinSquare(char** square, int n){
     return latinSquare;
 }
 
-void printLatinSquare(char **square, int n){
+void printLatinSquare(LatinSquare square, int n){
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             printf("%d ", square[i][j]);
@@ -28,39 +28,6 @@ void printLatinSquare(char **square, int n){
         printf("\n");
     }
     printf("\n\n");
-}
-
-void swap (char *x, char *y)
-{
-    char temp;
-    temp = *x;
-    *x = *y;
-    *y = temp;
-}
-
-int factorial(int n)
-{
-    return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
-}
-
-void permute(char *a, int i, int n, char** perms, int &k)
-{
-    int j;
-    if (i == n){
-        for(int j = 0; j <= n; j++){
-            perms[k][j] = a[j];
-        }
-        k = k+1;
-    }
-    else
-    {
-        for (j = i; j <= n; j++)
-        {
-            swap((a + i), (a + j));
-            permute(a, i + 1, n, perms, k);
-            swap((a+i), (a + j));
-        }
-    }
 }
 
 
@@ -142,11 +109,11 @@ bool canExtendToLatinSquare(int n, char** square, int k, int val){
 }
 
 
-void generateReducedLatinSquaresRec(int k, char** square, int n, std::list<LatinSquare> list){
+void generateReducedLatinSquaresRec(int k, char** square, int n, std::list<LatinSquare>* list){
     int size = n*n;
     if(k == size){
         if(checkTransversals(square, n)){
-            list.push_back(toLatinSquare(square, n));
+            list->push_back(toLatinSquare(square, n));
         };
     }
     else{
@@ -164,7 +131,7 @@ void generateReducedLatinSquaresRec(int k, char** square, int n, std::list<Latin
     }
 }
 
-void generateReducedLatinSquares(int n){
+std::list<LatinSquare> generateReducedLatinSquares(int n){
     char** square = new char*[n];
     for (int i = 0; i < n; i++)
         square[i] = new char[n];
@@ -174,47 +141,82 @@ void generateReducedLatinSquares(int n){
         square[i][0] = i;
     }
     std::list<LatinSquare> list;
-    generateReducedLatinSquaresRec(n + 1, square, n, list);
+    generateReducedLatinSquaresRec(n + 1, square, n, &list);
     for (int i = 0; i < n; i++)
         delete [] square[i];
     delete [] square;
+    return list;
 }
 
-char** generatePermutations(int n){
-    int fact = factorial(n);
-    char **perms = new char*[factorial(n)];
-    for(int i = 0; i < fact; i++){
-        perms[i] = new char[n];
-    }
-    char *a = new char[n];
-    for(int i = 0; i < n; i++){
-        a[i] = i;
-    }
-    int k = 0;
-    permute(a, 0 , n-1, perms, k);
-    free(a);
-    return perms;
-}
-
-void permuteRows(char* perm, LatinSquare square){
-
-}
-
-void permuteColumns(char* perm, LatinSquare square){
-    
-}
-
-void permuteElements(char* perm, LatinSquare square){
-    
-}
 
 bool compareSquares(LatinSquare square1, LatinSquare square2){
     return true;
+}
+
+void swapColumn(LatinSquare &square, int i, int j){
+    for (auto &v : square)
+        std::swap(v[i], v[j]);
+}
+
+void swapRow(LatinSquare& square, int i, int j){
+    std::iter_swap(square.begin() + i, square.begin() + j);
+}
+
+void swapElements(LatinSquare& square,  int i, int j){
+    for(int k = 0; k < square.size(); k++){
+        int a = 0;
+        int b = 0;
+        for(int l = 0; l != square[k].size(); l++){
+            if(i == square[k][l]){
+                a = l;
+            }
+            if(square[k][l] == j){
+                b = l;
+            }
+        }
+        std::swap(square[k][a], square[k][b]);
+    }
+}
+
+void permute(char* permutation, LatinSquare& square, swap swap){
+    int i = 0;
+    int start = i;
+    do{
+        swap(square,i, permutation[i]);
+        i = permutation[i];
+        printLatinSquare(square, square.size());
+    }
+    while(permutation[i] != start);
+}
+
+void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
+    char* permutation = new char[n];
+    for (std::list<LatinSquare>::iterator it=list->begin(); it != list->end(); ++it){
+        for(int i = 0; i < n; i++){
+            permutation[i] = i;
+        }
+        while(std::next_permutation(permutation, permutation + n)){
+            permute(permutation, *it, swapRow);
+            permute(permutation, *it, swapColumn);
+            permute(permutation, *it, swapElements);
+
+        }
+    }
+    delete [] permutation;
 }
 
 
 
 int main()
 {
+    std::list<LatinSquare> list= generateReducedLatinSquares(5);
+    /*for (std::list<LatinSquare>::iterator it=list.begin(); it != list.end(); ++it){
+        swapElements((*it), 3, 2);
+        printLatinSquare(*it, 5);
+    }*/
+    LatinSquare square = *list.begin();
+    char permutation[5] = {1,2,3,4,0};
+    permute(permutation,square, swapRow);
+    //computeIsotopyClasses(nullptr, 5);
     
 }

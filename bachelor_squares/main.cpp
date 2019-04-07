@@ -1,4 +1,3 @@
-// Example program
 #include <cstdlib>
 #include <cstdio>
 #include <vector>
@@ -7,11 +6,6 @@
 #include <numeric>
 
 typedef std::vector<std::vector<char>> LatinSquare;
-
-
-
-typedef void (*swap)(LatinSquare&, int, int);
-
 
 LatinSquare toLatinSquare(char** square, int n){
     LatinSquare latinSquare;
@@ -182,33 +176,43 @@ void swapElements(LatinSquare& square,  int i, int j){
     }
 }
 
+void swapInVector(std::vector<char> &vector, int i, int j){
+    std::swap(vector[i], vector[j]);
+}
+
 void reversePermutation(std::vector<char> permutation, std::vector<char> &reverse){
     for(int i = 0; i < permutation.size(); i++){
         reverse[permutation[i]] = i;
     }
 }
 
-
-void permute(std::vector<char> permutation, LatinSquare& square, swap swap){
-    int i = 0;
-    while(true){
-        int start = i;
+template<typename T>
+void permute(std::vector<char> permutation, std::vector<T>& square, void (*swap)(std::vector<T>&, int, int)){
+    int wasPermuted = 0;//nie używam do markowania tablicy bool, tylko pojedynczej zmiennej
+    int end = (1 << square.size()) - 1;
+    char i = 0;
+    while(wasPermuted < end){
+        char start = i;
         do{
-            swap(square,i, permutation[i]);
-            i = permutation[i];
+            if(i != permutation[i]){
+                swap(square,i, permutation[i]);
+                wasPermuted = wasPermuted | (1 << i);
+                i = permutation[i];
+            }
         }
         while(permutation[i] != start);
-        
+        wasPermuted = wasPermuted | (1 << i);
+        i = 0;
+        printf("%d \n", wasPermuted);
+        while(wasPermuted & 1 << i++);
     }
+
 }
 
 void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
     std::vector<char> permutation(n);
-    std::iota(permutation.begin(), permutation.end(),0);
     for (std::list<LatinSquare>::iterator it=list->begin(); it != list->end(); ++it){
-        for(int i = 0; i < n; i++){
-            permutation[i] = i;
-        }
+        std::iota(permutation.begin(), permutation.end(),0);
         while(std::next_permutation(permutation.begin(), permutation.end())){
 
         }
@@ -219,19 +223,13 @@ void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
 
 int main()
 {
-    std::list<LatinSquare> list= generateReducedLatinSquares(5);
+    std::list<LatinSquare> list= generateReducedLatinSquares(6);
     /*for (std::list<LatinSquare>::iterator it=list.begin(); it != list.end(); ++it){
         swapElements((*it), 3, 2);
         printLatinSquare(*it, 5);
     }*/
     LatinSquare square = *list.begin();
-    std::vector<char> permutation = {1,2,3,4,0};
-    std::vector<char> reverse(5);
-    reversePermutation(permutation, reverse);
-    for(int i = 0; i < 5; i++){
-        printf("%d ", reverse[i]);
-    }
-    printf("\n");
-    //computeIsotopyClasses(nullptr, 5);
-    
+    std::vector<char> permutation = {1,2,0,4,5,3};
+    permute(permutation, square, swapRow);
+    printLatinSquare(square, 6);
 }

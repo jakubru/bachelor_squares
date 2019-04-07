@@ -4,8 +4,12 @@
 #include <vector>
 #include <list>
 #include <algorithm>
+#include <numeric>
 
 typedef std::vector<std::vector<char>> LatinSquare;
+
+
+
 typedef void (*swap)(LatinSquare&, int, int);
 
 
@@ -178,31 +182,37 @@ void swapElements(LatinSquare& square,  int i, int j){
     }
 }
 
-void permute(char* permutation, LatinSquare& square, swap swap){
-    int i = 0;
-    int start = i;
-    do{
-        swap(square,i, permutation[i]);
-        i = permutation[i];
-        printLatinSquare(square, square.size());
+void reversePermutation(std::vector<char> permutation, std::vector<char> &reverse){
+    for(int i = 0; i < permutation.size(); i++){
+        reverse[permutation[i]] = i;
     }
-    while(permutation[i] != start);
+}
+
+
+void permute(std::vector<char> permutation, LatinSquare& square, swap swap){
+    int i = 0;
+    while(true){
+        int start = i;
+        do{
+            swap(square,i, permutation[i]);
+            i = permutation[i];
+        }
+        while(permutation[i] != start);
+        
+    }
 }
 
 void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
-    char* permutation = new char[n];
+    std::vector<char> permutation(n);
+    std::iota(permutation.begin(), permutation.end(),0);
     for (std::list<LatinSquare>::iterator it=list->begin(); it != list->end(); ++it){
         for(int i = 0; i < n; i++){
             permutation[i] = i;
         }
-        while(std::next_permutation(permutation, permutation + n)){
-            permute(permutation, *it, swapRow);
-            permute(permutation, *it, swapColumn);
-            permute(permutation, *it, swapElements);
+        while(std::next_permutation(permutation.begin(), permutation.end())){
 
         }
     }
-    delete [] permutation;
 }
 
 
@@ -215,8 +225,13 @@ int main()
         printLatinSquare(*it, 5);
     }*/
     LatinSquare square = *list.begin();
-    char permutation[5] = {1,2,3,4,0};
-    permute(permutation,square, swapRow);
+    std::vector<char> permutation = {1,2,3,4,0};
+    std::vector<char> reverse(5);
+    reversePermutation(permutation, reverse);
+    for(int i = 0; i < 5; i++){
+        printf("%d ", reverse[i]);
+    }
+    printf("\n");
     //computeIsotopyClasses(nullptr, 5);
     
 }

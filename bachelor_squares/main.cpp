@@ -19,12 +19,15 @@ LatinSquare toLatinSquare(char** square, int n){
 }
 
 void printLatinSquare(LatinSquare square, int n){
+    printf("{\n");
     for(int i = 0; i < n; i++){
+        printf("{");
         for(int j = 0; j < n; j++){
-            printf("%d ", square[i][j]);
+            printf("%d, ", square[i][j]);
         }
-        printf("\n");
+        printf("}\n");
     }
+    printf("}\n");
     printf("\n\n");
 }
 
@@ -110,7 +113,7 @@ bool canExtendToLatinSquare(int n, char** square, int k, int val){
 void generateReducedLatinSquaresRec(int k, char** square, int n, std::list<LatinSquare>* list){
     int size = n*n;
     if(k == size){
-        if(checkTransversals(square, n)){
+        if(!checkTransversals(square, n)){
             list->push_back(toLatinSquare(square, n));
         };
     }
@@ -202,8 +205,8 @@ void permute(std::vector<char> permutation, std::vector<T>& square, void (*swap)
         }
         while(permutation[i] != start);
         wasPermuted = wasPermuted | (1 << i);
+        printf("%d\n", wasPermuted);
         i = 0;
-        printf("%d \n", wasPermuted);
         while(wasPermuted & 1 << i++);
     }
 
@@ -223,13 +226,20 @@ void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
 
 int main()
 {
-    std::list<LatinSquare> list= generateReducedLatinSquares(6);
-    /*for (std::list<LatinSquare>::iterator it=list.begin(); it != list.end(); ++it){
-        swapElements((*it), 3, 2);
-        printLatinSquare(*it, 5);
-    }*/
-    LatinSquare square = *list.begin();
-    std::vector<char> permutation = {1,2,0,4,5,3};
+    /*std::list<LatinSquare> list = generateReducedLatinSquares(6);
+    for (std::list<LatinSquare>::iterator it=list.begin(); it != list.end(); ++it){
+        printLatinSquare(*it, 6);
+    }
+    printLatinSquare(*list.begin(), 6);*/
+    LatinSquare square = {
+        {0, 1, 2, 3, 4, 5 },
+        {1, 0, 3, 2, 5, 4 },
+        {2, 3, 4, 5, 0, 1 },
+        {3, 2, 5, 4, 1, 0 },
+        {4, 5, 0, 1, 2, 3 },
+        {5, 4, 1, 0, 3, 2 }
+    };
+    std::vector<char> permutation = {0,1,2,3,4,5};
     permute(permutation, square, swapRow);
     printLatinSquare(square, 6);
 }

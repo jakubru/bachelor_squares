@@ -4,6 +4,7 @@
 #include <list>
 #include <algorithm>
 #include <numeric>
+#include <cstring>
 
 typedef std::vector<std::vector<char>> LatinSquare;
 
@@ -147,7 +148,14 @@ std::list<LatinSquare> generateReducedLatinSquares(int n){
 }
 
 
-bool compareSquares(LatinSquare square1, LatinSquare square2){
+bool compareSquares(LatinSquare &square1, LatinSquare &square2){
+    for(int i = 0; i < square2.size(); i++){
+        char* a = &square1[i][0];
+        char* b = &square2[i][0];
+        if(memcmp(a, b, square2.size())){
+            return false;
+        }
+    }
     return true;
 }
 
@@ -210,6 +218,7 @@ void permute(std::vector<char> permutation, std::vector<T>& square, void (*swap)
 
 void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
     std::vector<char> permutation(n);
+    int i = 0;
     for (std::list<LatinSquare>::iterator it=list->begin(); it != list->end(); ++it){
         std::iota(permutation.begin(), permutation.end(),0);
         std::vector<char> reverse(n);
@@ -221,7 +230,16 @@ void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
             permute(permutation,reverse,swapInVector);
             permute(reverse, square, swapColumn);
             permute(permutation, square, swapElements);
+            if(!compareSquares(square, *it)){
+                std::list<LatinSquare>::iterator it2=list->begin();
+                while(it2 != list-> end() && !compareSquares(square, *it2)){
+                    it2++;
+                }
+                if(it2 == list->end())
+                    printf("dfasfaf\n");
+            }
         }
+        printf("%d\n",i++);
     }
 }
 
@@ -229,6 +247,9 @@ void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
 
 int main()
 {
-    std::list<LatinSquare> list = generateReducedLatinSquares(5);
-    computeIsotopyClasses(&list, 5);
+    std::list<LatinSquare> list = generateReducedLatinSquares(6);
+    computeIsotopyClasses(&list, 6);
+    /*for(std::list<LatinSquare>::iterator it = list.begin(); it != list.end(); it++){
+        printLatinSquare(*it,5);
+    }*/
 }

@@ -20,13 +20,15 @@ LatinSquare toLatinSquare(char** square, int n){
 }
 
 void printLatinSquare(LatinSquare square, int n){
+    printf("{\n");
     for(int i = 0; i < n; i++){
+        printf("{");
         for(int j = 0; j < n; j++){
-            printf("%d ", square[i][j]);
+            printf("%d, ", square[i][j]);
         }
-        printf("\n");
+        printf("},\n");
     }
-    printf("\n\n");
+    printf("}\n\n");
 }
 
 
@@ -168,25 +170,23 @@ void swapRow(LatinSquare& square, int i, int j){
     std::iter_swap(square.begin() + i, square.begin() + j);
 }
 
-void swapElements(LatinSquare& square,  int i, int j){
-    for(int k = 0; k < square.size(); k++){
-        int a = 0;
-        int b = 0;
-        for(int l = 0; l < square[k].size(); l++){
-            if(i == square[k][l]){
-                a = l;
-            }
-            if(square[k][l] == j){
-                b = l;
-            }
-        }
-        std::swap(square[k][a], square[k][b]);
+
+void renameVector(std::vector<char>& vector, std::vector<char> permutation){
+    std::vector <char> tmp(vector.size());
+    for(int i = 0; i < vector.size(); i++){
+        tmp[i] = permutation[vector[i]];
+    }
+    for(int i = 0; i < vector.size(); i++){
+        vector[i] = tmp[i];
     }
 }
 
-void swapInVector(std::vector<char> &vector, int i, int j){
-    std::swap(vector[i], vector[j]);
+void renameElements(LatinSquare& square, std::vector<char> permutation){
+    for(int i = 0; i < square.size(); i++){
+        renameVector(square[i], permutation);
+    }
 }
+
 
 void reversePermutation(std::vector<char> permutation, std::vector<char> &reverse){
     for(int i = 0; i < permutation.size(); i++){
@@ -216,40 +216,36 @@ void permute(std::vector<char> permutation, std::vector<T>& square, void (*swap)
 
 }
 
+
+
 void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
     std::vector<char> permutation(n);
-    int i = 0;
     for (std::list<LatinSquare>::iterator it=list->begin(); it != list->end(); ++it){
         std::iota(permutation.begin(), permutation.end(),0);
         std::vector<char> reverse(n);
         while(std::next_permutation(permutation.begin(), permutation.end())){
             LatinSquare square(*it);
-            permute(permutation, square, swapRow);
+            renameElements(square, permutation);
+            reversePermutation(permutation, reverse);
+            permute(reverse, square, swapRow);
             std::vector<char> perm2 (square[0]);
             reversePermutation(perm2, reverse);
-            permute(permutation,reverse,swapInVector);
             permute(reverse, square, swapColumn);
-            permute(permutation, square, swapElements);
             if(!compareSquares(square, *it)){
                 std::list<LatinSquare>::iterator it2=list->begin();
-                while(it2 != list-> end() && !compareSquares(square, *it2)){
+                while(it2 != list->end() && !compareSquares(square, *it2)){
                     it2++;
                 }
-                if(it2 == list->end())
-                    printf("dfasfaf\n");
+                if(it2 != list->end())
+                    list->erase(it2);
             }
         }
-        printf("%d\n",i++);
     }
 }
 
 
-
 int main()
 {
-    std::list<LatinSquare> list = generateReducedLatinSquares(6);
-    computeIsotopyClasses(&list, 6);
-    /*for(std::list<LatinSquare>::iterator it = list.begin(); it != list.end(); it++){
-        printLatinSquare(*it,5);
-    }*/
+    std::list<LatinSquare> list = generateReducedLatinSquares(5);
+    
 }

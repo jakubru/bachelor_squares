@@ -194,6 +194,10 @@ void reversePermutation(std::vector<char> permutation, std::vector<char> &revers
     }
 }
 
+void swapInVector(std::vector<char> &vector, int i, int j){
+    std::swap(vector[i], vector[j]);
+}
+
 template<typename T>
 void permute(std::vector<char> permutation, std::vector<T>& square, void (*swap)(std::vector<T>&, int, int)){
     int wasPermuted = 0;//nie używam do markowania tablicy bool, tylko pojedynczej zmiennej
@@ -213,31 +217,50 @@ void permute(std::vector<char> permutation, std::vector<T>& square, void (*swap)
             i++;
         };
     }
-
 }
 
+bool check(LatinSquare &square){
+    for(int i = 0; i < square.size(); i++){
+        if(square[i][0] != square[0][i]){
+            return false;
+        }
+    }
+    return true;
+}
+
+void getFirstColumn(LatinSquare &square, std::vector<char> &column){
+    for(int i = 0; i < square.size(); i++){
+        column[i] = square[i][0];
+    }
+}
 
 
 void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
     std::vector<char> permutation(n);
+    std::vector<char> permutation2(n);
     for (std::list<LatinSquare>::iterator it=list->begin(); it != list->end(); ++it){
         std::iota(permutation.begin(), permutation.end(),0);
         std::vector<char> reverse(n);
         while(std::next_permutation(permutation.begin(), permutation.end())){
             LatinSquare square(*it);
-            renameElements(square, permutation);
-            reversePermutation(permutation, reverse);
-            permute(reverse, square, swapRow);
-            std::vector<char> perm2 (square[0]);
-            reversePermutation(perm2, reverse);
-            permute(reverse, square, swapColumn);
-            if(!compareSquares(square, *it)){
-                std::list<LatinSquare>::iterator it2=list->begin();
-                while(it2 != list->end() && !compareSquares(square, *it2)){
-                    it2++;
+            permute(permutation, square, swapColumn);
+            for(int i = 0; i < n; i++){
+                LatinSquare square2(square);
+                getFirstColumn(square2, permutation2);
+                std::vector<char> permutation3(square[i]);
+                reversePermutation(permutation2, reverse);
+                permute(permutation3,reverse,swapInVector);
+                permute(reverse, square2, swapRow);
+                reversePermutation(permutation3, reverse);
+                renameElements(square2, reverse);
+                if(!compareSquares(square2, *it)){
+                    std::list<LatinSquare>::iterator it2=list->begin();
+                    while(it2 != list-> end() && !compareSquares(square2, *it2)){
+                        it2++;
+                    }
+                    if(it2 != list->end())
+                        list->erase(it2);
                 }
-                if(it2 != list->end())
-                    list->erase(it2);
             }
         }
     }
@@ -246,6 +269,7 @@ void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
 
 int main()
 {
-    std::list<LatinSquare> list = generateReducedLatinSquares(5);
-    
+    std::list<LatinSquare> list = generateReducedLatinSquares(6);
+    computeIsotopyClasses(&list, 6);
+    printf("%d\n", list.size());
 }

@@ -19,22 +19,8 @@ LatinSquare toLatinSquare(char** square, int n){
     return latinSquare;
 }
 
-void printLatinSquare(LatinSquare square, int n){
-    printf("{\n");
-    for(int i = 0; i < n; i++){
-        printf("{");
-        for(int j = 0; j < n; j++){
-            printf("%d, ", square[i][j]);
-        }
-        printf("},\n");
-    }
-    printf("}\n\n");
-}
-
-
-
 bool canBeTransversal(char **square, char** result, int n, int k, int val){
-    //jeśli leży w kolumnie, w której już jes jakiś element k%n transwersala to nie bierzemy do transwersala
+    //jeśli leży w kolumnie, w której już jest jakiś element tego transwersala to nie bierzemy do transwersala
     for(int i = 0; i < k/n; i++){
         if(result[i][k%n] == val){
             return false;
@@ -57,10 +43,9 @@ bool canBeTransversal(char **square, char** result, int n, int k, int val){
     return true;
 }
 
-
 void checkTransversalsRec(char **square, char** result, int n, int k, bool& found){
     if(k == n*n){
-        found = true;
+        found = true;// potrzebujemy znaleźć tylko pierwsze rozbicie na transwersale, dalsze szukanie nie jest konieczne
     }
     else{
         for(int i = 0; i < n; i++){
@@ -94,12 +79,12 @@ bool checkTransversals(char** square, int n){
 bool canExtendToLatinSquare(int n, char** square, int k, int val){
     int column = k%n;
     int row = k/n;
-    for(int i = 0; i < column; i++){
+    for(int i = 0; i < column; i++){//sprawdzam dla dodanej wartości czy zgadza się wierszu
         if(square[row][i] == val){
             return false;
         }
     }
-    for (int j = 0; j < row; j++){
+    for (int j = 0; j < row; j++){//sprawdzam dla dodanej wartości czy zgadza się kolumnie
         if(square[j][column] == val){
             return false;
         }
@@ -110,29 +95,30 @@ bool canExtendToLatinSquare(int n, char** square, int k, int val){
 }
 
 
-void generateReducedLatinSquaresRec(int k, char** square, int n, std::list<LatinSquare>* list){
+void generateReducedLatinSquaresRec(int k, char** square, int n, std::list<LatinSquare>& list, int &count){
     int size = n*n;
     if(k == size){
+        count = count+1;
         if(!checkTransversals(square, n)){
-            list->push_back(toLatinSquare(square, n));
+            list.push_back(toLatinSquare(square, n));
         };
     }
     else{
         if(k%n){
             for(int i = 0; i < n; i++){
                 if(canExtendToLatinSquare(n, square,k,i)){
-                    square[k/n][k%n] = i;
-                    generateReducedLatinSquaresRec(k+1, square,n, list);
+                    square[k/n][k%n] = i; //dodaję do następnej komórki macierzy wartość od 0 do n - 1 wtedy,gdy nadal jest szansa, że będzie to kwadrat łaciński
+                    generateReducedLatinSquaresRec(k+1, square,n, list, count);
                 }
             }
         }
         else{
-            generateReducedLatinSquaresRec(k+1, square,n, list);
+            generateReducedLatinSquaresRec(k+1, square,n, list,count);//jeśli k%n = 0 to jesteśmy w pierwszej kolumnie i wartość w komórce jest ustalona
         }
     }
 }
 
-std::list<LatinSquare> generateReducedLatinSquares(int n){
+std::list<LatinSquare> generateReducedLatinSquares(int n, int &count){
     char** square = new char*[n];
     for (int i = 0; i < n; i++)
         square[i] = new char[n];
@@ -142,19 +128,18 @@ std::list<LatinSquare> generateReducedLatinSquares(int n){
         square[i][0] = i;
     }
     std::list<LatinSquare> list;
-    generateReducedLatinSquaresRec(n + 1, square, n, &list);
+    generateReducedLatinSquaresRec(n + 1, square, n, list, count);
     for (int i = 0; i < n; i++)
         delete [] square[i];
     delete [] square;
     return list;
 }
 
-
 bool compareSquares(LatinSquare &square1, LatinSquare &square2){
     for(int i = 0; i < square2.size(); i++){
         char* a = &square1[i][0];
         char* b = &square2[i][0];
-        if(memcmp(a, b, square2.size())){
+        if(memcmp(a, b, square2.size())){//porównanie bloków pamięci
             return false;
         }
     }
@@ -198,6 +183,7 @@ void swapInVector(std::vector<char> &vector, int i, int j){
     std::swap(vector[i], vector[j]);
 }
 
+//metoda szablonowa permutująca zadany ciąg
 template<typename T>
 void permute(std::vector<char> permutation, std::vector<T>& square, void (*swap)(std::vector<T>&, int, int)){
     int wasPermuted = 0;//nie używam do markowania tablicy bool, tylko pojedynczej zmiennej
@@ -219,26 +205,16 @@ void permute(std::vector<char> permutation, std::vector<T>& square, void (*swap)
     }
 }
 
-bool check(LatinSquare &square){
-    for(int i = 0; i < square.size(); i++){
-        if(square[i][0] != square[0][i]){
-            return false;
-        }
-    }
-    return true;
-}
-
 void getFirstColumn(LatinSquare &square, std::vector<char> &column){
     for(int i = 0; i < square.size(); i++){
         column[i] = square[i][0];
     }
 }
 
-
-void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
+void computeIsotopyClasses(std::list<LatinSquare>& list, int n){
     std::vector<char> permutation(n);
     std::vector<char> permutation2(n);
-    for (std::list<LatinSquare>::iterator it=list->begin(); it != list->end(); ++it){
+    for (std::list<LatinSquare>::iterator it=list.begin(); it != list.end(); ++it){
         std::iota(permutation.begin(), permutation.end(),0);
         std::vector<char> reverse(n);
         while(std::next_permutation(permutation.begin(), permutation.end())){
@@ -254,22 +230,27 @@ void computeIsotopyClasses(std::list<LatinSquare>* list, int n){
                 reversePermutation(permutation3, reverse);
                 renameElements(square2, reverse);
                 if(!compareSquares(square2, *it)){
-                    std::list<LatinSquare>::iterator it2=list->begin();
-                    while(it2 != list-> end() && !compareSquares(square2, *it2)){
+                    std::list<LatinSquare>::iterator it2=list.begin();
+                    while(it2 != list.end() && !compareSquares(square2, *it2)){
                         it2++;
                     }
-                    if(it2 != list->end())
-                        list->erase(it2);
+                    if(it2 != list.end())
+                        list.erase(it2);
                 }
             }
         }
     }
 }
 
-
 int main()
 {
-    std::list<LatinSquare> list = generateReducedLatinSquares(6);
-    computeIsotopyClasses(&list, 6);
-    printf("%d\n", list.size());
+    for(int i = 2; i < 7; i++){
+        printf("n: %d\n", i);
+        int count = 0;
+        std::list<LatinSquare> list = generateReducedLatinSquares(i, count);
+        printf("Liczba wszystkich zredukowanych: %d\n", count );
+        printf("Liczba wszystkich zredukowanych bachelor: %d\n", list.size() );
+        computeIsotopyClasses(list, i);
+        printf("Liczba wszystkich zredukowanych wzajemnie nieizotopijnych bachelor: %d\n", list.size());
+    }
 }
